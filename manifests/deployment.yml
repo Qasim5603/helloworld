@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: qasimhelloworld 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qasimhelloworld
+  template:
+    metadata:
+      labels:
+        app: qasimhelloworld 
+    spec:
+      containers:
+        - name: qasimhelloworld 
+          image: qasimsdevop.azurecr.io/qasimhelloworld
+          ports:
+          - containerPort: 8080
