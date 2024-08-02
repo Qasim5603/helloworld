@@ -12,50 +12,39 @@ variables:
   tag: '$(Build.BuildId)'
   imagePullSecret: 'qasimsdevopec8b-auth'
   vmImageName: 'ubuntu-latest'
-  k8sNamespaceForPR: 'review-app-$(System.PullRequest.PullRequestId)'
 
 pool:
   vmImage: 'ubuntu-latest'
 
-stages:
-- stage: BuildAndDeploy
+jobs:
+- job: BuildAndDeploy
   displayName: Build and Deploy
-  jobs:
-  - job: BuildAndPush
-    displayName: Build and Push
-    steps:
-    - task: Docker@2
-      displayName: Build and push an image to container registry
-      inputs:
-        command: buildAndPush
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
-        containerRegistry: $(dockerRegistryServiceConnection)
-        tags: |
-          $(tag)
+  steps:
+  - task: Docker@2
+    displayName: Build and push an image to container registry
+    inputs:
+      command: buildAndPush
+      repository: $(imageRepository)
+      dockerfile: $(dockerfilePath)
+      containerRegistry: $(dockerRegistryServiceConnection)
+      tags: |
+        $(tag)
 
-    - upload: manifests
-      artifact: manifests
+  - task: KubernetesManifest@0
+    displayName: Create imagePullSecret
+    inputs:
+      action: createSecret
+      secretName: $(imagePullSecret)
+      dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
 
-  - job: Deploy
-    displayName: Deploy
-    dependsOn: BuildAndPush
-    steps:
-    - task: KubernetesManifest@0
-      displayName: Create imagePullSecret
-      inputs:
-        action: createSecret
-        secretName: $(imagePullSecret)
-        dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
-
-    - task: KubernetesManifest@0
-      displayName: Deploy to Kubernetes cluster
-      inputs:
-        action: deploy
-        manifests: |
-          $(Pipeline.Workspace)/manifests/deployment.yml
-          $(Pipeline.Workspace)/manifests/service.yml
-        imagePullSecrets: |
-          $(imagePullSecret)
-        containers: |
-          $(containerRegistry)/$(imageRepository):$(tag)
+  - task: KubernetesManifest@0
+    displayName: Deploy to Kubernetes cluster
+    inputs:
+      action: deploy
+      manifests: |
+        $(Pipeline.Workspace)/manifests/deployment.yml
+        $(Pipeline.Workspace)/manifests/service.yml
+      imagePullSecrets: |
+        $(imagePullSecret)
+      containers: |
+        $(containerRegistry)/$(imageRepository):$(tag)
