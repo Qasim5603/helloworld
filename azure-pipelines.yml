@@ -14,7 +14,7 @@ variables:
   vmImageName: 'ubuntu-latest'
 
 pool:
-  vmImage: 'ubuntu-latest'
+  name: DESKTOP-1P4V56D  # Updated to use your local agent pool
 
 jobs:
 - job: BuildAndDeploy
