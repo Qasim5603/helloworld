@@ -8,13 +8,13 @@ variables:
   dockerRegistryServiceConnection: '87913068-9b24-4b1b-a111-e3a6400dd329'
   imageRepository: 'qasimhelloworld'
   containerRegistry: 'qasimsdevop.azurecr.io'
-  dockerfilePath: '**/Dockerfile'
+  dockerfilePath: 'Dockerfile'  # Assuming Dockerfile is in the root of your repository
   tag: '$(Build.BuildId)'
   imagePullSecret: 'qasimsdevopec8b-auth'
-  vmImageName: 'ubuntu-latest'
+  manifestsPath: 'manifests'  # Assuming manifests are in a directory named 'manifests'
 
 pool:
-  name: DESKTOP-1P4V56D  # Updated to use your local agent pool
+  name: DESKTOP-1P4V56D  # Local agent pool name
 
 jobs:
 - job: BuildAndDeploy
@@ -42,8 +42,8 @@ jobs:
     inputs:
       action: deploy
       manifests: |
-        $(Pipeline.Workspace)/manifests/deployment.yml
-        $(Pipeline.Workspace)/manifests/service.yml
+        $(Pipeline.Workspace)/$(manifestsPath)/deployment.yml
+        $(Pipeline.Workspace)/$(manifestsPath)/service.yml
       imagePullSecrets: |
         $(imagePullSecret)
       containers: |
